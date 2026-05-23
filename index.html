@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PSG OS">
+<meta name="theme-color" content="#0a0a0f">
+<title>PSG OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Cormorant+Garamond:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0a0f;
+    --surface: #0f1623;
+    --border: #2a2f3e;
+    --gold: #b8975a;
+    --gold-light: #f0c060;
+    --text: #e8e4dc;
+    --muted: #64748b;
+    --subtle: #94a3b8;
+    --green: #10b981;
+    --blue: #3b82f6;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --purple: #8b5cf6;
+  }
+  html { background: var(--bg); }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    padding-bottom: 80px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  input, select, button { font-family: inherit; }
+  input::placeholder { color: var(--muted); }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #0f1623 0%, #1a1f2e 50%, #0f1623 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 16px 0;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-inner { max-width: 680px; margin: 0 auto; }
+  .header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+  .header-label { font-size: 10px; letter-spacing: 3px; color: var(--gold); font-weight: 700; margin-bottom: 4px; }
+  .header-name { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+  .header-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .countdown-num { font-size: 30px; font-weight: 800; color: var(--gold); line-height: 1; }
+  .countdown-label { font-size: 9px; color: var(--muted); letter-spacing: 1px; text-align: right; }
+
+  /* TABS */
+  .tabs { display: flex; overflow-x: auto; margin-top: 16px; scrollbar-width: none; -ms-overflow-style: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    padding: 10px 14px; background: none; border: none;
+    border-bottom: 2px solid transparent; color: var(--muted);
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    letter-spacing: 0.3px; white-space: nowrap; transition: all 0.2s;
+  }
+  .tab-btn.active { border-bottom-color: var(--gold); color: var(--gold); font-weight: 700; }
+
+  /* CONTENT */
+  .content { max-width: 680px; margin: 0 auto; padding: 20px 16px; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 20px; margin-bottom: 16px;
+  }
+  .card-label { font-size: 10px; letter-spacing: 2px; color: var(--muted); margin-bottom: 14px; font-weight: 600; }
+
+  /* STATS GRID */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .stat-box { background: #0a0a0f60; border-radius: 10px; padding: 12px 8px; text-align: center; }
+  .stat-val { font-size: 17px; font-weight: 800; line-height: 1; }
+  .stat-lbl { font-size: 9px; color: var(--muted); letter-spacing: 1px; margin-top: 4px; }
+
+  /* PROGRESS BAR */
+  .prog-track { height: 5px; background: #1a1f2e; border-radius: 3px; }
+  .prog-fill { height: 5px; background: linear-gradient(90deg, var(--gold), var(--amber)); border-radius: 3px; transition: width 0.5s; }
+
+  /* RING */
+  .ring-wrap { position: relative; width: 64px; height: 64px; flex-shrink: 0; }
+  .ring-inner {
+    position: absolute; inset: 7px; background: var(--surface);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; color: var(--gold);
+  }
+
+  /* CHECKLIST */
+  .check-item {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 13px 15px; margin-bottom: 8px;
+    cursor: pointer; transition: all 0.15s; user-select: none;
+  }
+  .check-item.done { background: #0a1a0a; border-color: #10b98140; }
+  .check-box {
+    width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+    border: 2px solid var(--muted); display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .check-item.done .check-box { background: var(--green); border-color: var(--green); }
+  .check-tick { color: #fff; font-size: 12px; font-weight: 700; display: none; }
+  .check-item.done .check-tick { display: block; }
+  .check-text { font-size: 13px; color: var(--text); transition: all 0.15s; }
+  .check-item.done .check-text { color: var(--green); text-decoration: line-through; opacity: 0.7; }
+  .cat-label { font-size: 10px; letter-spacing: 2px; font-weight: 700; margin: 16px 0 8px; text-transform: uppercase; }
+
+  /* INPUTS */
+  .inp {
+    background: #0a0a0f; border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px; color: var(--text);
+    font-size: 14px; outline: none; width: 100%;
+  }
+  .inp:focus { border-color: var(--gold); }
+  .inp-label { font-size: 10px; color: var(--muted); margin-bottom: 6px; letter-spacing: 1px; }
+
+  /* BUTTONS */
+  .btn-gold {
+    background: var(--gold); border: none; border-radius: 10px;
+    padding: 12px; color: #0a0a0f; font-size: 14px; font-weight: 700;
+    cursor: pointer; width: 100%; transition: opacity 0.2s;
+  }
+  .btn-gold:active { opacity: 0.85; }
+  .btn-blue { background: var(--blue); border: none; border-radius: 8px; padding: 10px 16px; color: #fff; font-weight: 700; cursor: pointer; font-size: 13px; }
+  .btn-red { background: var(--red); border: none; border-radius: 8px; padding: 10px 16px; color: #fff; font-weight: 700; cursor: pointer; font-size: 13px; }
+  .btn-ghost {
+    background: #b8975a15; border: 1px solid #b8975a40; border-radius: 8px;
+    padding: 10px; color: var(--gold); font-size: 12px; cursor: pointer; font-weight: 600; width: 100%;
+  }
+
+  /* MOOD BTNS */
+  .food-grid { display: flex; gap: 8px; }
+  .food-btn {
+    flex: 1; padding: 10px; border-radius: 8px; cursor: pointer;
+    font-size: 12px; font-weight: 700; border: 1px solid var(--border);
+    background: #0a0a0f; color: var(--muted); transition: all 0.15s;
+  }
+  .food-btn.active-clean { background: var(--green); border-color: var(--green); color: #fff; }
+  .food-btn.active-okay { background: var(--amber); border-color: var(--amber); color: #fff; }
+  .food-btn.active-bad { background: var(--red); border-color: var(--red); color: #fff; }
+
+  /* LOG ROW */
+  .log-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid #1a1f2e; font-size: 12px;
+  }
+  .log-row:last-child { border-bottom: none; }
+
+  /* GOAL BAR */
+  .goal-item { margin-bottom: 18px; }
+  .goal-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
+
+  /* FITNESS CARD */
+  .day-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px 18px; margin-bottom: 10px;
+  }
+  .day-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .day-badge {
+    border-radius: 8px; padding: 4px 10px; font-size: 10px; font-weight: 700;
+  }
+  .badge-active { background: #b8975a20; border: 1px solid #b8975a40; color: var(--gold); }
+  .badge-rest { background: #1a1f2e; border: 1px solid var(--border); color: var(--muted); }
+  .ex-row { font-size: 13px; color: var(--subtle); padding: 4px 0; border-bottom: 1px solid #1a1f2e; }
+  .ex-row:last-child { border-bottom: none; }
+  .cardio-box { background: #0a1520; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: var(--blue); margin-top: 10px; }
+
+  /* SECTION TITLE */
+  .section-title { margin-bottom: 18px; }
+  .section-eyebrow { font-size: 10px; letter-spacing: 3px; color: var(--gold); margin-bottom: 4px; font-weight: 700; }
+  .section-h { font-size: 20px; font-weight: 800; color: #fff; }
+  .section-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  /* GRID 2 */
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+  /* PWA install banner */
+  .install-banner {
+    background: linear-gradient(135deg, #1a1506, #2a1f08);
+    border: 1px solid #b8975a40; border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 12;
+  }
+
+  /* Divider */
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+  @media (max-width: 400px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .g3 { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-top">
+      <div>
+        <div class="header-label">PSG OS</div>
+        <div class="header-name">Pranay Gohil</div>
+        <div class="header-sub">Structured Rebuild · June 2026</div>
+      </div>
+      <div style="text-align:right">
+        <div class="countdown-num" id="daysLeft">—</div>
+        <div class="countdown-label">DAYS TO<br>BIRTHDAY</div>
+      </div>
+    </div>
+    <div class="tabs" id="tabBar"></div>
+  </div>
+</div>
+
+<div class="content" id="mainContent"></div>
+
+<script>
+// ─── DATA ──────────────────────────────────────────────────────────────
+const BIRTHDAY = new Date('2026-08-28');
+const START_WEIGHT = 120;
+const GOAL_WEIGHT = 106;
+
+const CHECKLIST = [
+  { id:'wake',      label:'Wake up by 7:00 AM',              cat:'morning' },
+  { id:'water',     label:'2 glasses water before phone',     cat:'morning' },
+  { id:'walk_am',   label:'Morning walk / steps (30 min)',    cat:'morning' },
+  { id:'breakfast', label:'Eat breakfast (don\'t skip)',      cat:'morning' },
+  { id:'gym',       label:'Gym or workout session',           cat:'morning' },
+  { id:'office',    label:'Office — on time',                 cat:'work'    },
+  { id:'no_impulse',label:'No impulse spending today',        cat:'work'    },
+  { id:'rapido',    label:'Rapido riding session',            cat:'work'    },
+  { id:'lunch',     label:'Controlled lunch (no overeating)', cat:'afternoon'},
+  { id:'steps',     label:'6,000+ steps hit',                 cat:'afternoon'},
+  { id:'reel',      label:'Reel idea / shoot / post',         cat:'evening' },
+  { id:'dinner',    label:'Light dinner before 9 PM',         cat:'evening' },
+  { id:'smoke',     label:'Stayed under 3 cigarettes',        cat:'evening' },
+  { id:'log',       label:'Updated PSG OS tracker',           cat:'night'   },
+  { id:'sleep',     label:'In bed by 11:30 PM',               cat:'night'   },
+];
+
+const CAT_COLORS = { morning:'#f59e0b', work:'#3b82f6', afternoon:'#10b981', evening:'#8b5cf6', night:'#6366f1' };
+const CAT_LABELS = { morning:'☀️ Morning', work:'💼 Work', afternoon:'🌤 Afternoon', evening:'🌆 Evening', night:'🌙 Night' };
+
+const FIXED = [
+  { name:'Scooter EMI',       amt:5350, note:'Starts July'  },
+  { name:'University EMI',    amt:2084, note:'Till Sept'    },
+  { name:'Health Insurance',  amt:1080, note:'Ongoing'      },
+  { name:'Parking',           amt:500                       },
+  { name:'WiFi',              amt:1000                      },
+  { name:'Electricity',       amt:1250, note:'Avg'          },
+  { name:'Mobile Recharge',   amt:650,  note:'2 SIMs'       },
+  { name:'Apple Music',       amt:60                        },
+];
+
+const GOALS = [
+  { id:'degree',     icon:'🎓', label:'Degree Fee',              target:12500, due:'Aug 2026' },
+  { id:'emi6',       icon:'🛵', label:'Scooter EMI Reserve (6M)', target:33000, due:'Aug 2026' },
+  { id:'emergency',  icon:'🛡️', label:'Emergency Fund',           target:50000, due:'Dec 2026' },
+];
+
+const FITNESS = [
+  { day:'Monday',    type:'Upper Body',          badge:'active',
+    ex:['Push-ups 3×15','Dumbbell rows 3×12','Shoulder press 3×12','Plank 3×40s'],
+    cardio:'20 min incline walk after' },
+  { day:'Tuesday',   type:'Lower Body + Core',   badge:'active',
+    ex:['Squats 3×15','Lunges 3×12 each leg','Glute bridge 3×20','Dead bug 3×10'],
+    cardio:'30 min brisk walk / Rapido counts' },
+  { day:'Wednesday', type:'Active Rest',          badge:'rest',
+    ex:['6,000–10,000 steps','Stretching 15 min','Light yoga optional'],
+    cardio:'Walk to office or Rapido' },
+  { day:'Thursday',  type:'Full Body Circuit',    badge:'active',
+    ex:['Burpees 3×10','DB swings 3×15','Mountain climbers 3×20','Russian twists 3×20'],
+    cardio:'15 min cycle or fast walk' },
+  { day:'Friday',    type:'Upper Body + Arms',    badge:'active',
+    ex:['Bench press / push-up var 3×12','Bicep curls 3×15','Tricep dips 3×12','Lat pulldown 3×12'],
+    cardio:'20 min walk' },
+  { day:'Saturday',  type:'Cardio Focus',         badge:'active',
+    ex:['20 min jog / fast walk','Jump rope 5 min','Core circuit 3 rounds'],
+    cardio:'Longest walk day — 8–10k steps' },
+  { day:'Sunday',    type:'Rest & Recover',        badge:'rest',
+    ex:['Full rest or gentle walk','Prep meals for Monday','Log your weight'],
+    cardio:'Light walking only' },
+];
+
+const DIET = [
+  'Eat breakfast — skipping leads to overeating later',
+  'Protein at every meal: eggs, dal, chicken, paneer',
+  'Dinner before 9 PM — lightest meal of the day',
+  'Avoid outside food more than 1× per day',
+  'Replace 1 cigarette break with a 5 min walk',
+  '2–3 litres of water daily minimum',
+  'No alcohol on weekdays — save for weekends if needed',
+  'Rice portions: 1 small bowl max, not 2–3',
+];
+
+const TABS = ['Dashboard','Daily Log','Health','Finance','Fitness Plan'];
+
+// ─── STATE ─────────────────────────────────────────────────────────────
+const todayKey = new Date().toISOString().split('T')[0];
+
+function ls(k, d) { try { const v = localStorage.getItem(k); return v !== null ? JSON.parse(v) : d; } catch { return d; } }
+function sl(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+
+let state = {
+  tab: 'Dashboard',
+  checks: ls('psg_checks_' + todayKey, {}),
+  health: ls('psg_health', []),
+  rapido: ls('psg_rapido', []),
+  goalSavings: ls('psg_goals', { degree:0, emi6:0, emergency:0 }),
+  expenses: ls('psg_expenses', []),
+  // form state
+  newWeight:'', newSteps:'', newSleep:'', newMood:'3', newFood:'okay',
+  newRapido:'', newRapidoNote:'',
+  newExpAmt:'', newExpLabel:'', newExpCat:'food',
+};
+
+function save() {
+  sl('psg_checks_' + todayKey, state.checks);
+  sl('psg_health', state.health);
+  sl('psg_rapido', state.rapido);
+  sl('psg_goals', state.goalSavings);
+  sl('psg_expenses', state.expenses);
+}
+
+// ─── HELPERS ───────────────────────────────────────────────────────────
+function daysLeft() {
+  return Math.max(0, Math.ceil((BIRTHDAY - new Date()) / 86400000));
+}
+function todayStr() {
+  return new Date().toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'long' });
+}
+function fmtDate() {
+  return new Date().toLocaleDateString('en-IN');
+}
+function checkScore() {
+  const done = Object.values(state.checks).filter(Boolean).length;
+  return Math.round((done / CHECKLIST.length) * 100);
+}
+function latestWeight() {
+  const logs = state.health.filter(l => l.weight);
+  return logs.length ? logs[logs.length-1].weight : START_WEIGHT;
+}
+function weightLost() { return Math.max(0, START_WEIGHT - latestWeight()); }
+function weightPct() { return Math.min(100, Math.round((weightLost() / (START_WEIGHT - GOAL_WEIGHT)) * 100)); }
+function totalRapido() { return state.rapido.reduce((s,r) => s + (Number(r.amt)||0), 0); }
+function fixedTotal() { return FIXED.reduce((s,e) => s + e.amt, 0); }
+function thisMonthExp() {
+  const m = new Date().toISOString().slice(0,7);
+  return state.expenses.filter(e => e.date && e.date.startsWith(m)).reduce((s,e) => s + (Number(e.amt)||0), 0);
+}
+function ringGradient(pct) {
+  const deg = pct * 3.6;
+  return `conic-gradient(#b8975a ${deg}deg, #1a1f2e 0deg)`;
+}
+
+// ─── RENDER ────────────────────────────────────────────────────────────
+function render() {
+  document.getElementById('daysLeft').textContent = daysLeft();
+
+  // Tabs
+  const tabBar = document.getElementById('tabBar');
+  tabBar.innerHTML = TABS.map(t => `
+    <button class="tab-btn ${state.tab===t?'active':''}" onclick="setTab('${t}')">${t}</button>
+  `).join('');
+
+  // Content
+  const c = document.getElementById('mainContent');
+  if (state.tab === 'Dashboard') c.innerHTML = renderDashboard();
+  else if (state.tab === 'Daily Log') c.innerHTML = renderDaily();
+  else if (state.tab === 'Health') c.innerHTML = renderHealth();
+  else if (state.tab === 'Finance') c.innerHTML = renderFinance();
+  else if (state.tab === 'Fitness Plan') c.innerHTML = renderFitness();
+
+  bindEvents();
+}
+
+// ─── DASHBOARD ─────────────────────────────────────────────────────────
+function renderDashboard() {
+  const score = checkScore();
+  const wlost = weightLost();
+  const wpct = weightPct();
+  const fixedR = FIXED.reduce((s,e)=>s+e.amt,0);
+
+  return `
+  <!-- Birthday mission -->
+  <div style="background:linear-gradient(135deg,#1a1506,#2a1f08);border:1px solid #b8975a40;border-radius:16px;padding:20px;margin-bottom:16px">
+    <div class="card-label" style="color:var(--gold)">BIRTHDAY MISSION</div>
+    <div style="font-size:17px;font-weight:700;color:#fff;margin-bottom:14px">Lose ${START_WEIGHT-GOAL_WEIGHT}kg by 28 August 2026</div>
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-val" style="color:var(--amber)">${latestWeight()}kg</div><div class="stat-lbl">CURRENT</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:var(--green)">${GOAL_WEIGHT}kg</div><div class="stat-lbl">TARGET</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:var(--blue)">${wlost}kg</div><div class="stat-lbl">LOST</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:var(--gold)">${daysLeft()}</div><div class="stat-lbl">DAYS LEFT</div></div>
+    </div>
+    <div style="margin-top:14px">
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:5px"><span>Progress</span><span>${wpct}%</span></div>
+      <div class="prog-track"><div class="prog-fill" style="width:${wpct}%"></div></div>
+    </div>
+  </div>
+
+  <!-- Today score -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div>
+        <div class="card-label">TODAY'S SCORE</div>
+        <div style="font-size:13px;color:var(--text)">${todayStr()}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${Object.values(state.checks).filter(Boolean).length}/${CHECKLIST.length} done</div>
+      </div>
+      <div class="ring-wrap" style="background:${ringGradient(score)};border-radius:50%">
+        <div class="ring-inner">${score}%</div>
+      </div>
+    </div>
+    <div class="g2">
+      ${CHECKLIST.slice(0,4).map(item => `
+        <div style="display:flex;align-items:center;gap:8px;background:${state.checks[item.id]?'#0a1a0a':'#0a0a0f'};border-radius:8px;padding:8px 10px;border:1px solid ${state.checks[item.id]?'#10b98130':'var(--border)'}">
+          <div style="width:14px;height:14px;border-radius:4px;background:${state.checks[item.id]?'var(--green)':'#1a1f2e'};flex-shrink:0"></div>
+          <div style="font-size:11px;color:${state.checks[item.id]?'var(--green)':'var(--subtle)'};">${item.label}</div>
+        </div>
+      `).join('')}
+    </div>
+    <button class="btn-ghost" style="margin-top:12px" onclick="setTab('Daily Log')">Open Full Checklist →</button>
+  </div>
+
+  <!-- Financial snapshot -->
+  <div class="card">
+    <div class="card-label">FINANCIAL SNAPSHOT</div>
+    <div class="g3">
+      <div class="stat-box"><div class="stat-val" style="color:var(--green);font-size:14px">₹36k</div><div class="stat-lbl">SALARY</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:var(--amber);font-size:14px">₹${fixedR.toLocaleString()}</div><div class="stat-lbl">FIXED COSTS</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:var(--blue);font-size:14px">₹${totalRapido().toLocaleString()}</div><div class="stat-lbl">RAPIDO</div></div>
+    </div>
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:13px">
+      <span style="color:var(--subtle)">Net Available</span>
+      <span style="font-weight:700;color:var(--green)">₹${(36000-fixedR).toLocaleString()}/mo</span>
+    </div>
+  </div>
+
+  <!-- Goals -->
+  <div class="card">
+    <div class="card-label">SAVINGS GOALS</div>
+    ${GOALS.map(g => {
+      const saved = state.goalSavings[g.id] || 0;
+      const pct = Math.min(100, Math.round((saved/g.target)*100));
+      return `
+      <div class="goal-item">
+        <div class="goal-header">
+          <span style="font-size:13px;color:var(--text)">${g.icon} ${g.label}</span>
+          <span style="font-size:11px;color:var(--gold)">₹${saved.toLocaleString()} / ₹${g.target.toLocaleString()}</span>
+        </div>
+        <div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div>
+        <div style="font-size:10px;color:var(--muted);margin-top:3px">${pct}% · Due ${g.due}</div>
+      </div>`;
+    }).join('')}
+  </div>
+  `;
+}
+
+// ─── DAILY LOG ─────────────────────────────────────────────────────────
+function renderDaily() {
+  const cats = ['morning','work','afternoon','evening','night'];
+  return `
+  <div class="section-title">
+    <div class="section-eyebrow">DAILY CHECKLIST</div>
+    <div class="section-h">${todayStr()}</div>
+    <div class="section-sub">${Object.values(state.checks).filter(Boolean).length}/${CHECKLIST.length} done · ${checkScore()}% score</div>
+  </div>
+  ${cats.map(cat => `
+    <div class="cat-label" style="color:${CAT_COLORS[cat]}">${CAT_LABELS[cat]}</div>
+    ${CHECKLIST.filter(i=>i.cat===cat).map(item => `
+      <div class="check-item ${state.checks[item.id]?'done':''}" data-id="${item.id}">
+        <div class="check-box" style="border-color:${state.checks[item.id]?'var(--green)':CAT_COLORS[cat]}">
+          <span class="check-tick">✓</span>
+        </div>
+        <div class="check-text">${item.label}</div>
+      </div>
+    `).join('')}
+  `).join('')}
+  `;
+}
+
+// ─── HEALTH ────────────────────────────────────────────────────────────
+function renderHealth() {
+  const logs = [...state.health].reverse().slice(0,14);
+  return `
+  <div class="section-title">
+    <div class="section-eyebrow">HEALTH TRACKER</div>
+    <div class="section-h">Log Today's Data</div>
+  </div>
+
+  <div class="card">
+    <div class="g2" style="margin-bottom:12px">
+      <div>
+        <div class="inp-label">WEIGHT (KG)</div>
+        <input class="inp" id="h_weight" type="number" placeholder="e.g. 119.5" value="${state.newWeight}">
+      </div>
+      <div>
+        <div class="inp-label">STEPS</div>
+        <input class="inp" id="h_steps" type="number" placeholder="e.g. 7200" value="${state.newSteps}">
+      </div>
+      <div>
+        <div class="inp-label">SLEEP (HRS)</div>
+        <input class="inp" id="h_sleep" type="number" placeholder="e.g. 7" value="${state.newSleep}">
+      </div>
+      <div>
+        <div class="inp-label">MOOD (1–5)</div>
+        <select class="inp" id="h_mood">
+          ${['1 – Rough','2 – Low','3 – Okay','4 – Good','5 – Great'].map((m,i)=>`<option value="${i+1}" ${state.newMood==i+1?'selected':''}>${m}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div style="margin-bottom:12px">
+      <div class="inp-label">FOOD TODAY</div>
+      <div class="food-grid">
+        <button class="food-btn ${state.newFood==='clean'?'active-clean':''}" data-food="clean">CLEAN</button>
+        <button class="food-btn ${state.newFood==='okay'?'active-okay':''}" data-food="okay">OKAY</button>
+        <button class="food-btn ${state.newFood==='bad'?'active-bad':''}" data-food="bad">BAD</button>
+      </div>
+    </div>
+    <button class="btn-gold" id="logHealth">Log Today</button>
+  </div>
+
+  ${logs.length ? `
+  <div class="card">
+    <div class="card-label">LOG HISTORY</div>
+    ${logs.map(log => `
+      <div class="log-row">
+        <div style="color:var(--muted)">${log.date}</div>
+        <div style="display:flex;gap:10px">
+          ${log.weight ? `<span style="color:var(--gold);font-weight:700">${log.weight}kg</span>` : ''}
+          ${log.steps ? `<span style="color:var(--blue)">${Number(log.steps).toLocaleString()}st</span>` : ''}
+          ${log.sleep ? `<span style="color:var(--purple)">${log.sleep}h</span>` : ''}
+          <span style="color:${log.food==='clean'?'var(--green)':log.food==='okay'?'var(--amber)':'var(--red)'};font-weight:600">${log.food}</span>
+        </div>
+      </div>
+    `).join('')}
+  </div>` : ''}
+
+  <div style="background:#0a1208;border:1px solid #10b98130;border-radius:16px;padding:20px;margin-top:4px">
+    <div class="card-label" style="color:var(--green)">DIET FRAMEWORK</div>
+    ${DIET.map(tip => `
+      <div style="display:flex;gap:10px;margin-bottom:9px;font-size:13px;color:var(--subtle);line-height:1.5">
+        <span style="color:var(--green);font-weight:700;flex-shrink:0">→</span><span>${tip}</span>
+      </div>`).join('')}
+  </div>
+  `;
+}
+
+// ─── FINANCE ───────────────────────────────────────────────────────────
+function renderFinance() {
+  const fixedR = fixedTotal();
+  const recent = [...state.rapido].reverse().slice(0,5);
+  const recentExp = [...state.expenses].reverse().slice(0,8);
+
+  return `
+  <div class="section-title">
+    <div class="section-eyebrow">FINANCIAL TRACKER</div>
+    <div class="section-h">June Onwards</div>
+  </div>
+
+  <!-- Salary breakdown -->
+  <div class="card">
+    <div class="card-label">SALARY BREAKDOWN · ₹36,000/month</div>
+    ${FIXED.map(e => `
+      <div class="log-row">
+        <div style="color:var(--subtle)">${e.name}${e.note?` <span style="font-size:10px;color:var(--muted)">(${e.note})</span>`:''}</div>
+        <div style="color:var(--amber);font-weight:600">₹${e.amt.toLocaleString()}</div>
+      </div>`).join('')}
+    <div style="padding-top:10px;border-top:1px solid var(--border);margin-top:4px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+        <span style="color:var(--subtle)">Total Fixed</span>
+        <span style="color:var(--red);font-weight:700">₹${fixedR.toLocaleString()}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700">
+        <span style="color:var(--text)">Net Remaining</span>
+        <span style="color:var(--green)">₹${(36000-fixedR).toLocaleString()}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rapido -->
+  <div class="card">
+    <div class="card-label" style="color:var(--blue)">RAPIDO EARNINGS · Total: ₹${totalRapido().toLocaleString()}</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <input class="inp" id="r_amt" type="number" placeholder="₹ Amount" style="flex:1" value="${state.newRapido}">
+      <input class="inp" id="r_note" type="text" placeholder="Note (optional)" style="flex:2" value="${state.newRapidoNote}">
+      <button class="btn-blue" id="addRapido">Add</button>
+    </div>
+    ${recent.map(r => `
+      <div class="log-row">
+        <div style="color:var(--muted)">${r.date}${r.note?` · ${r.note}`:''}</div>
+        <div style="color:var(--blue);font-weight:700">+₹${Number(r.amt).toLocaleString()}</div>
+      </div>`).join('')}
+  </div>
+
+  <!-- Goals -->
+  <div class="card">
+    <div class="card-label">SAVINGS GOALS</div>
+    ${GOALS.map(g => {
+      const saved = state.goalSavings[g.id] || 0;
+      const pct = Math.min(100, Math.round((saved/g.target)*100));
+      return `
+      <div class="goal-item">
+        <div class="goal-header">
+          <span style="font-size:14px;color:var(--text)">${g.icon} ${g.label}</span>
+          <span style="font-size:11px;color:var(--muted)">Due ${g.due}</span>
+        </div>
+        <div class="prog-track" style="margin-bottom:8px"><div class="prog-fill" style="width:${pct}%"></div></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="inp" placeholder="Update saved ₹" data-goal="${g.id}" style="flex:1;font-size:13px;padding:8px 10px" type="number">
+          <span style="font-size:11px;color:var(--gold);font-weight:700;min-width:90px;text-align:right">₹${saved.toLocaleString()} / ₹${g.target.toLocaleString()}</span>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:3px">${pct}% saved</div>
+      </div>`;
+    }).join('')}
+  </div>
+
+  <!-- Expenses -->
+  <div class="card">
+    <div class="card-label">EXPENSE LOG</div>
+    <div style="font-size:12px;color:var(--amber);margin-bottom:12px">This month: ₹${thisMonthExp().toLocaleString()}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+      <input class="inp" id="e_amt" type="number" placeholder="₹ Amount" style="flex:1;min-width:80px" value="${state.newExpAmt}">
+      <input class="inp" id="e_label" type="text" placeholder="What for?" style="flex:2;min-width:100px" value="${state.newExpLabel}">
+      <select class="inp" id="e_cat" style="min-width:80px">
+        ${['food','transport','health','lifestyle','shopping','other'].map(c=>`<option value="${c}" ${state.newExpCat===c?'selected':''}>${c}</option>`).join('')}
+      </select>
+      <button class="btn-red" id="addExp">Log</button>
+    </div>
+    ${recentExp.map(e => `
+      <div class="log-row">
+        <div><span style="color:var(--subtle)">${e.label||e.cat}</span> <span style="font-size:10px;background:#1a1f2e;padding:2px 6px;border-radius:4px;color:var(--muted)">${e.cat}</span></div>
+        <div style="color:var(--red);font-weight:700">−₹${Number(e.amt).toLocaleString()}</div>
+      </div>`).join('')}
+  </div>
+  `;
+}
+
+// ─── FITNESS ───────────────────────────────────────────────────────────
+function renderFitness() {
+  return `
+  <div class="section-title">
+    <div class="section-eyebrow">FITNESS PLAN</div>
+    <div class="section-h">Weekly Schedule</div>
+    <div class="section-sub">Goal: 12–15kg in ${daysLeft()} days · Gym + walking + diet</div>
+  </div>
+
+  <div class="g3" style="margin-bottom:20px">
+    ${[['~500 cal','Daily Deficit','target'],['~0.5 kg','Weekly Loss','realistic'],['6–10k','Daily Steps','minimum']].map(s=>`
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center">
+        <div style="font-size:15px;font-weight:800;color:var(--gold)">${s[0]}</div>
+        <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:2px">${s[1]}</div>
+        <div style="font-size:9px;color:var(--blue);margin-top:2px">${s[2]}</div>
+      </div>`).join('')}
+  </div>
+
+  ${FITNESS.map(d => `
+    <div class="day-card">
+      <div class="day-header">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:#fff">${d.day}</div>
+          <div style="font-size:11px;color:var(--gold);margin-top:1px;letter-spacing:1px">${d.type}</div>
+        </div>
+        <div class="day-badge ${d.badge==='active'?'badge-active':'badge-rest'}">${d.badge==='active'?'ACTIVE':'REST'}</div>
+      </div>
+      ${d.ex.map(e=>`<div class="ex-row"><span style="color:var(--blue);margin-right:8px">›</span>${e}</div>`).join('')}
+      <div class="cardio-box">🚶 ${d.cardio}</div>
+    </div>
+  `).join('')}
+
+  <div style="background:#150a0a;border:1px solid #ef444430;border-radius:16px;padding:20px;margin-top:8px">
+    <div class="card-label" style="color:var(--red)">SPOT REDUCTION MYTH</div>
+    <div style="font-size:13px;color:var(--subtle);line-height:1.7">
+      You can't target side fat, back fat, or thigh fat specifically. What actually works:<br><br>
+      <strong style="color:var(--text)">Calorie deficit + full body strength training + daily walking</strong> = fat comes off everywhere including your problem areas. The plan above combined with 500–700 calorie daily deficit will get you there by August.
+    </div>
+  </div>
+  `;
+}
+
+// ─── EVENTS ────────────────────────────────────────────────────────────
+function bindEvents() {
+  // Checklist
+  document.querySelectorAll('.check-item[data-id]').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.id;
+      state.checks[id] = !state.checks[id];
+      save(); render();
+    });
+  });
+
+  // Health log
+  const logBtn = document.getElementById('logHealth');
+  if (logBtn) logBtn.addEventListener('click', () => {
+    const w = document.getElementById('h_weight').value;
+    const s = document.getElementById('h_steps').value;
+    if (!w && !s) return;
+    state.health.push({
+      date: fmtDate(),
+      weight: w ? Number(w) : null,
+      steps: s ? Number(s) : null,
+      sleep: document.getElementById('h_sleep').value ? Number(document.getElementById('h_sleep').value) : null,
+      mood: Number(document.getElementById('h_mood').value),
+      food: state.newFood,
+    });
+    state.newWeight = ''; state.newSteps = ''; state.newSleep = '';
+    save(); render();
+  });
+
+  // Food buttons
+  document.querySelectorAll('[data-food]').forEach(btn => {
+    btn.addEventListener('click', () => { state.newFood = btn.dataset.food; render(); });
+  });
+
+  // Rapido
+  const addR = document.getElementById('addRapido');
+  if (addR) addR.addEventListener('click', () => {
+    const amt = document.getElementById('r_amt').value;
+    if (!amt) return;
+    state.rapido.push({ date: fmtDate(), amt: Number(amt), note: document.getElementById('r_note').value });
+    state.newRapido = ''; state.newRapidoNote = '';
+    save(); render();
+  });
+
+  // Goal savings
+  document.querySelectorAll('[data-goal]').forEach(inp => {
+    inp.addEventListener('blur', () => {
+      const val = Number(inp.value);
+      if (inp.value !== '' && val >= 0) {
+        state.goalSavings[inp.dataset.goal] = val;
+        inp.value = '';
+        save(); render();
+      }
+    });
+  });
+
+  // Expenses
+  const addE = document.getElementById('addExp');
+  if (addE) addE.addEventListener('click', () => {
+    const amt = document.getElementById('e_amt').value;
+    if (!amt) return;
+    state.expenses.push({
+      date: new Date().toISOString().split('T')[0],
+      amt: Number(amt),
+      label: document.getElementById('e_label').value,
+      cat: document.getElementById('e_cat').value,
+    });
+    state.newExpAmt = ''; state.newExpLabel = '';
+    save(); render();
+  });
+}
+
+function setTab(t) { state.tab = t; render(); window.scrollTo(0,0); }
+
+// Init
+document.getElementById('daysLeft').textContent = daysLeft();
+render();
+</script>
+
+<!-- PWA manifest inline -->
+<script>
+// Register service worker for offline use
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'psg-os-v1';
+    self.addEventListener('install', e => {
+      e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/'])));
+    });
+    self.addEventListener('fetch', e => {
+      e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+    });
+  `;
+  const blob = new Blob([swCode], {type:'application/javascript'});
+  const url = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(url).catch(()=>{});
+}
+</script>
+
+</body>
+</html>
